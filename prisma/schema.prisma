@@ -18,9 +18,10 @@ enum UserRole {
   PREMIUM_USER
 }
 model User{
-  id String @id @default(cuid()) @map("_id")
+  id String @id @default(auto()) @map("_id") @db.ObjectId
   name String?
   email String @unique
+  emailVerified DateTime?
   image String?
   accounts Account[]
   role UserRole @default(USER)

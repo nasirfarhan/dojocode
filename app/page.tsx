@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import UserButton from "@/modules/auth/components/user-button";
 
 
 export default function Home() {
@@ -6,6 +7,7 @@ export default function Home() {
     <div  className="flex flex-col items-center justify-center h-screen bg-grey-100"><Button >
       Get Started 
       </Button>
+      <UserButton></UserButton>
       </div>
   );
 }
