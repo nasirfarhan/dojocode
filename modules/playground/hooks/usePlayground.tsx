@@ -4,7 +4,9 @@ import type { TemplateFolder } from "../lib/path-to-json";
 import { getPlaygroundById, saveUpdatedCode } from "../actions";
 
 interface PlaygroundData {
-  templateFiles?: Array<{ content: unknown }>;
+  id: string 
+  title?: string
+  [key: string]: unknown;
 }
 
 interface UsePlaygroundReturn {
@@ -37,8 +39,14 @@ export const usePlayground = (id: string): UsePlaygroundReturn => {
       setError(null);
 
       const data = await getPlaygroundById(id);
-      setPlaygroundData(data ?? null);
-
+      setPlaygroundData(
+        data
+          ? {
+            id,
+            ...data,
+          }
+          : null
+      );
       const rawContent = data?.templateFiles?.[0]?.content;
       let savedTemplate: unknown = rawContent;
 
@@ -50,7 +58,7 @@ export const usePlayground = (id: string): UsePlaygroundReturn => {
         }
       }
 
-      if (isTemplateFolder(savedTemplate)) {
+      if (isTemplateFolder(savedTemplate) && savedTemplate.items.length > 0) {
         setTemplateData(savedTemplate);
         toast.success("Playground loaded successfully");
         return;
