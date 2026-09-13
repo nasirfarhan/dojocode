@@ -4,21 +4,50 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { TemplateFileTree } from "@/modules/playground/components/playground-explorer";
+import { useFileExplorer } from "@/modules/playground/hooks/useFileExplorer";
 import { usePlayground } from "@/modules/playground/hooks/usePlayground";
+import { TemplateFile } from "@/modules/playground/lib/path-to-json";
 import { useParams } from "next/navigation";
+import { useEffect } from "react";
 
 const MainPlaygroundPage = () => {
   const { id } = useParams<{ id: string }>();
 
   const { templateData, playgroundData } = usePlayground(id);
 
-  console.log("template-data", templateData);
+  const{
+    setPlaygroundId,
+    setActiveFileId,
+    setTemplateData,
+    setOpenFiles,
+    activeFileId,
+    closeAllFiles,
+    openFile,
+    openFiles
+
+  }= useFileExplorer()
+
+  useEffect(()=>{setPlaygroundId(id)},[id,setPlaygroundId])
+
+  useEffect(()=>{
+    if(templateData&& !openFiles.length){
+    setTemplateData(templateData)
+  }
+  },[templateData , setTemplateData , openFiles.length])
+
+  const activeFile = openFiles.find((f)=> f.id === activeFileId)
   
+  const hasUnsavedChanges = openFiles.some((f)=>f.hasUnsavedChanges)
+
+  const handleFileSelect = (file:TemplateFile)=>{
+    openFile(file)
+  }
   return <TooltipProvider>
     <>
       <TemplateFileTree 
-      data = {templateData}
-      onFileSelect = {()=>{}}
+      data = {templateData!}
+      onFileSelect = {handleFileSelect}
+      selectedFile={activeFile}
       title= "File Explorer"
       onAddFile = {()=>{}}
       onAddFolder = {()=>{}}
