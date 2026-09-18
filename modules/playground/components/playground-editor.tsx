@@ -1,26 +1,91 @@
-import React from 'react'
-import { useState , useCallback , useRef } from 'react'
-import { TemplateFile } from '../lib/path-to-json'
-import { Monaco } from '@monaco-editor/react'
 
+import React, { useCallback, useEffect, useRef } from "react";
+import { TemplateFile } from "../lib/path-to-json";
+import { Editor, Monaco } from "@monaco-editor/react";
+import {
+  configureMonaco,
+  defaultEditorOptions,
+  getEditorLanguage,
+} from "../lib/editor-confog";
 
-interface PlaygroundEditorProps{
-  activeFile: TemplateFile | null
-  content:string
-  onContentChange: (value:string)=>void
-
+interface PlaygroundEditorProps {
+  activeFile: TemplateFile | null;
+  content: string;
+  onContentChange: (value: string) => void;
 }
+
 const PlaygroundEditor = ({
-activeFile,
-content,
-onContentChange
-}:PlaygroundEditorProps) => {
+  activeFile,
+  content,
+  onContentChange,
+}: PlaygroundEditorProps) => {
+  const editorRef = useRef<any>(null);
+  const monacoRef = useRef<Monaco | null>(null);
 
-  const editorRef = useRef<unknown>(null)
-  const monacoRef = useRef<Monaco | null>(null)
+  const updateEditorLanguage = () => {
+    if (!activeFile || !monacoRef.current || !editorRef.current) {
+      return;
+    }
+
+    const model = editorRef.current.getModel();
+
+    if (!model) {
+      return;
+    }
+
+    const language = getEditorLanguage(
+      activeFile.fileExtension || ""
+    );
+
+    try {
+      monacoRef.current.editor.setModelLanguage(
+        model,
+        language
+      );
+    } catch (error) {
+      console.warn("Could not update editor language", error);
+    }
+  };
+
+  const handleEditorDidMount = (
+    editor: any,
+    monaco: Monaco
+  ) => {
+    editorRef.current = editor;
+    monacoRef.current = monaco;
+
+    console.log("Editor mounted", !!editorRef.current);
+
+    editor.updateOptions({
+      ...defaultEditorOptions,
+    });
+
+    configureMonaco(monaco);
+    updateEditorLanguage()
+  };
+
+  useEffect(() => {
+    updateEditorLanguage();
+  }, []);
+
   return (
-    <div>PlaygroundEditor</div>
-  )
-}
+    <div className="h-full relative">
+      <Editor
+        height="100%"
+        value={content}
+        onChange={(value) => onContentChange(value || "")}
+        onMount={handleEditorDidMount}
+        language={
+          activeFile
+            ? getEditorLanguage(activeFile.fileExtension || "")
+            : "plaintext"
+        }
+        //@ts-ignore
+        options={defaultEditorOptions}
+      />
+    </div>
+  );
+};
 
-export default PlaygroundEditor
+export default PlaygroundEditor;
+
