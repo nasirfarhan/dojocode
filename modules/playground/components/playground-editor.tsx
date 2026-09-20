@@ -6,7 +6,7 @@ import {
   configureMonaco,
   defaultEditorOptions,
   getEditorLanguage,
-} from "../lib/editor-confog";
+} from "../lib/editor-config";
 
 interface PlaygroundEditorProps {
   activeFile: TemplateFile | null;
@@ -22,30 +22,6 @@ const PlaygroundEditor = ({
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<Monaco | null>(null);
 
-  const updateEditorLanguage = () => {
-    if (!activeFile || !monacoRef.current || !editorRef.current) {
-      return;
-    }
-
-    const model = editorRef.current.getModel();
-
-    if (!model) {
-      return;
-    }
-
-    const language = getEditorLanguage(
-      activeFile.fileExtension || ""
-    );
-
-    try {
-      monacoRef.current.editor.setModelLanguage(
-        model,
-        language
-      );
-    } catch (error) {
-      console.warn("Could not update editor language", error);
-    }
-  };
 
   const handleEditorDidMount = (
     editor: any,
