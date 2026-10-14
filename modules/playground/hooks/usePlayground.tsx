@@ -18,6 +18,8 @@ interface UsePlaygroundReturn {
   saveTemplateData: (data: TemplateFolder) => Promise<void>;
 }
 
+const EMPTY_TEMPLATE: TemplateFolder = { folderName: "Root", items: [] };
+
 function isTemplateFolder(value: unknown): value is TemplateFolder {
   if (!value || typeof value !== "object") return false;
 
@@ -109,7 +111,7 @@ export const usePlayground = (id: string): UsePlaygroundReturn => {
 
   return {
     playgroundData,
-    templateData: templateData ?? { folderName: "Root", items: [] },
+    templateData: templateData ?? EMPTY_TEMPLATE,
     isLoading,
     error,
     loadPlayground,

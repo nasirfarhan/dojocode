@@ -1,35 +1,38 @@
-import { create } from 'zustand'
-import { toast } from 'sonner'
-import { TemplateFile, TemplateFolder } from '../lib/path-to-json'
-import { get } from 'http'
-import { generateFileId } from '../lib'
+import { create } from "zustand";
+import { toast } from "sonner";
 
+import { TemplateFile, TemplateFolder } from "../lib/path-to-json";
 
-interface OpenFile extends TemplateFile{
-    id: string,
-    hasUnsavedChanges: boolean,
-    content: string,
-    originalContent: string
+import { generateFileId } from "../lib";
+
+interface OpenFile extends TemplateFile {
+  id: string;
+  hasUnsavedChanges: boolean;
+  content: string;
+  originalContent: string;
 }
+
 interface FileExplorerState {
-    playgroundId: string,
-    templateData: TemplateFolder | null,
-    openFiles: OpenFile[],
-    activeFileId: string | null,
-    editorContent: string
-    //setter functions
-    setPlaygroundId: (id: string) => void
-    setTemplateData: (data: TemplateFolder | null) => void
-    setEditorContent: (content: string) => void
-    setActiveFileId: (fieldId: string | null) => void
-    setOpenFiles: (files: OpenFile[]) => void
+  playgroundId: string;
+  templateData: TemplateFolder | null;
+  openFiles: OpenFile[];
+  activeFileId: string | null;
+  editorContent: string;
 
-    //functions
-    openFile:(file:TemplateFile)=>void
-    closeFile:(fieldId:string)=> void
-    closeAllFiles:()=>void
+  //   Setter Functions
+  setPlaygroundId: (id: string) => void;
+  setTemplateData: (data: TemplateFolder | null) => void;
+  setEditorContent: (content: string) => void;
+  setOpenFiles: (files: OpenFile[]) => void;
+  setActiveFileId: (fileId: string | null) => void;
 
-       handleAddFile: (
+  //   Functions
+  openFile: (file: TemplateFile) => void;
+  closeFile: (fileId: string) => void;
+  closeAllFiles: () => void;
+
+  // File explorer methods
+   handleAddFile: (
     newFile: TemplateFile,
     parentPath: string,
     writeFileSync: (filePath: string, content: string) => Promise<void>,
@@ -71,85 +74,83 @@ interface FileExplorerState {
   updateFileContent: (fileId: string, content: string) => void;
 }
 
-//@ts-ignore
-    export const useFileExplorer = create <FileExplorerState>((set,get)=>({
-    templateData: null,
-    playgroundId: "",
-    openFiles: [] satisfies OpenFile[],
-    activeFileId:null,
-    editorContent:"",
+// @ts-ignore
+export const useFileExplorer = create<FileExplorerState>((set, get) => ({
+  templateData: null,
+  playgroundId: "",
+  openFiles: [] satisfies OpenFile[],
+  activeFileId: null,
+  editorContent: "",
 
-    setTemplateData:(data)=>set({templateData:data}),
+  setTemplateData: (data) => set({ templateData: data }),
+  setPlaygroundId(id) {
+    set({ playgroundId: id });
+  },
+  setEditorContent: (content) => set({ editorContent: content }),
+  setOpenFiles: (files) => set({ openFiles: files }),
+  setActiveFileId: (fileId) => set({ activeFileId: fileId }),
+
+  openFile: (file) => {
+    const fileId = generateFileId(file, get().templateData!);
+    const { openFiles } = get();
+    const existingFile = openFiles.find((f) => f.id === fileId);
+
+    if (existingFile) {
+      set({ activeFileId: fileId, editorContent: existingFile.content });
+      return;
+    }
+
+    const newOpenFile: OpenFile = {
+      ...file,
+      id: fileId,
+      hasUnsavedChanges: false,
+      content: file.content || "",
+      originalContent: file.content || "",
+    };
+
+    set((state) => ({
+      openFiles: [...state.openFiles, newOpenFile],
+      activeFileId: fileId,
+      editorContent: file.content || "",
+    }));
+  },
+
+  closeFile:(fileId)=>{
+    const {openFiles , activeFileId} = get();
+     const newFiles = openFiles.filter((f) => f.id !== fileId);
+
+      // If we're closing the active file, switch to another file or clear active
+    let newActiveFileId = activeFileId;
+    let newEditorContent = get().editorContent;
+
+    if(activeFileId === fileId){
+        if(newFiles.length > 0){
+              const lastFile = newFiles[newFiles.length - 1];
+        newActiveFileId = lastFile.id;
+        newEditorContent = lastFile.content;
+        }
+        else{
+            newActiveFileId = null;
+            newEditorContent = "";
+        }
+    }
+
+    set({
+        openFiles:newFiles,
+        activeFileId:newActiveFileId,
+        editorContent:newEditorContent
+    })
     
-    setPlaygroundId(id){
-        set({playgroundId:id})
-    },
-       setEditorContent: (content) => set({editorContent: content}),
-       setActiveFileId: (fileId) => set({ activeFileId: fileId }),
-       setOpenFiles: (files) => set({ openFiles: files }),
+  },
+    closeAllFiles: () => {
+    set({
+      openFiles: [],
+      activeFileId: null,
+      editorContent: "",
+    });
+  },
 
-        openFile: (file) => {
-            const fileId = generateFileId(file, get().templateData!)
-            const { openFiles } = get()
-
-            const existingFile = openFiles.find((f) => f.id === fileId)
-
-            if (existingFile) {
-                set({ activeFileId: fileId, editorContent: existingFile.content })
-                return
-            }
-            const newOpenFile: OpenFile = {
-                ...file,
-                id: fileId,
-                hasUnsavedChanges: false,
-                originalContent: file.content || " ",
-                content: file.content || " ",
-            }
-
-            set((state) => ({
-                openFiles: [...state.openFiles, newOpenFile],
-                activeFileId: fileId,
-                editorContent: file.content || "",
-            }))
-        },
-
-        closeFile:(fileId)=>{
-            const {openFiles , activeFileId} = get()
-            const newFiles = openFiles.filter((f)=> f.id!==fileId)
-
-            let newActiveFileId = activeFileId
-            let newEditorContent = get().editorContent
-
-            if(activeFileId===fileId){
-                 if(newFiles.length>0){
-                    const lastFile = newFiles[newFiles.length-1]
-                    newActiveFileId = lastFile.id 
-                    newEditorContent = lastFile.content
-                 }
-                 else{
-                    newActiveFileId = null
-                    newEditorContent = ""
-                 }
-            }
-
-            set({
-                openFiles: newFiles,
-                activeFileId: newActiveFileId,
-                editorContent: newEditorContent
-            })
-
-
-        },
-        
-        closeAllFiles: ()=>{
-            set({
-                openFiles: [],
-                activeFileId: null,
-                editorContent: " ",
-            })
-        },
-
-         handleAddFile:async(newFile , parentPath , writeFileSync , instance , saveTemplateData)=>{
+  handleAddFile:async(newFile , parentPath , writeFileSync , instance , saveTemplateData)=>{
         const { templateData } = get();
     if (!templateData) return;
 
@@ -189,7 +190,7 @@ interface FileExplorerState {
     }
   },
 
-        handleAddFolder: async (newFolder, parentPath, instance, saveTemplateData) => {
+    handleAddFolder: async (newFolder, parentPath, instance, saveTemplateData) => {
     const { templateData } = get();
     if (!templateData) return;
 
@@ -226,7 +227,8 @@ interface FileExplorerState {
       toast.error("Failed to create folder");
     }
   },
-        handleDeleteFile: async (file, parentPath, saveTemplateData) => {
+
+    handleDeleteFile: async (file, parentPath, saveTemplateData) => {
     const { templateData, openFiles } = get();
     if (!templateData) return;
 
@@ -459,6 +461,8 @@ interface FileExplorerState {
         fileId === state.activeFileId ? content : state.editorContent,
     }));
   },
-    }))
+
+}));
+
 
 
