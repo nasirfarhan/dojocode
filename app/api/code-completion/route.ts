@@ -1,55 +1,70 @@
-import { metadata } from "@/app/layout";
-import { NextRequest , NextResponse} from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
+
 
 interface CodeSuggestionRequest {
-    fileContent: string ,
-    cursorLine:number,
-    cursorColumn : number,
-    suggestionType: string,
-    fileName?: string
+  fileContent: string;
+  cursorLine: number;
+  cursorColumn: number;
+  suggestionType: string;
+  fileName?: string;
 }
 
-interface CodeContext{
-    language: string, 
-    framework:string,
-    beforeContext: string,
-    currentLine: string,
-    afterContext: string,
-    cursorPosition : {line: number , column: number},
-    isInFunction: boolean,
-    isInClass: boolean,
-    isAfterComment: boolean,
-    incompletePatterns: string[]
+interface CodeContext {
+  language: string;
+  framework: string;
+  beforeContext: string;
+  currentLine: string;
+  afterContext: string;
+  cursorPosition: { line: number; column: number };
+  isInFunction: boolean;
+  isInClass: boolean;
+  isAfterComment: boolean;
+  incompletePatterns: string[];
 }
 
-export async function POST(request:NextRequest){
-    try {
-        const body:CodeSuggestionRequest = await request.json()
+export async function POST(request: NextRequest) {
+  try {
+    const body: CodeSuggestionRequest = await request.json();
 
-        const{fileContent , cursorLine , cursorColumn , suggestionType , fileName} = body
+    const { fileContent, cursorLine, cursorColumn, suggestionType, fileName } =
+      body;
 
-        if(!fileContent || cursorLine<0 || cursorColumn<0 || !suggestionType ){
-            return NextResponse.json({error: "Invalid input parameters"},{status:400})
-        }
-        const context = analyzeCodeContext(fileContent , cursorLine , cursorColumn, fileName)
-        const prompt = buildPrompt(context , suggestionType)
-        const suggestion = generateSuggestion(prompt)
-
-        return NextResponse.json({
-            suggestion,
-            context,
-            metadata:{
-                language: context.language,
-                framework: context.framework,
-                position: context.cursorPosition,
-                generatedAt: new Date().toISOString()
-            }
-        })
-    } catch (error:any) {
-        console.error("Context analysis error")
-        return NextResponse.json({error: "Internal Server Error", message:error.message},{status:500})
-        
+    // Validate input
+    if (!fileContent || cursorLine < 0 || cursorColumn < 0 || !suggestionType) {
+      return NextResponse.json(
+        { error: "Invalid input parameters" },
+        { status: 400 }
+      );
     }
+
+    const context = analyzeCodeContext(
+      fileContent,
+      cursorLine,
+      cursorColumn,
+      fileName
+    );
+
+    const prompt = buildPrompt(context, suggestionType);
+
+    const suggestion = await generateSuggestion(prompt);
+
+    return NextResponse.json({
+      suggestion,
+      context,
+      metadata: {
+        language: context.language,
+        framework: context.framework,
+        position: context.cursorPosition,
+        generatedAt: new Date().toISOString(),
+      },
+    });
+  } catch (error: any) {
+    console.error("Context analysis error:", error);
+    return NextResponse.json(
+      { error: "Internal server error", message: error.message },
+      { status: 500 }
+    );
+  }
 }
 
 function analyzeCodeContext(
@@ -122,42 +137,41 @@ Instructions:
 Generate suggestion:`;
 }
 
-async function generateSuggestion(prompt:string):Promise<string>{
-    try {
-        const response = await fetch("http//localhost:11434/api/generate" ,{
-            method:"POST",
-            headers: {'Content-Type': "application/json"},
-            body: JSON.stringify({
-                model:"gpt=oss:20B",
-                prompt,
-                stream:false,
-                option:{
-                    temprature: 0.7 ,
-                    max_tokens: 300
-                }
+async function generateSuggestion(prompt: string): Promise<string> {
+  try {
+    const response = await fetch("http://localhost:11434/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "codellama:latest",
+        prompt,
+        stream: false,
+        option: {
+          temperature: 0.7,
+          max_tokens: 300,
+        },
+      }),
+    });
 
-            })
-        })
+       if (!response.ok) {
+      throw new Error(`AI service error: ${response.statusText}`)
+    }
 
-        if(!response.ok){
-            throw new Error(`AI service error ${response.statusText}`)
-        }
+      const data = await response.json()
+    let suggestion = data.response
 
-        const data = await response.json()
-        let suggestion = data.response
-
-        if (suggestion.includes("```")) {
+     // Clean up the suggestion
+    if (suggestion.includes("```")) {
       const codeMatch = suggestion.match(/```[\w]*\n?([\s\S]*?)```/)
       suggestion = codeMatch ? codeMatch[1].trim() : suggestion
     }
+
     return suggestion
-
-    } catch (error) {
-        console.error("AI generation error: ", error)
-        return "// AI suggestion unavailable"
-    }
+  } catch (error) {
+      console.error("AI generation error:", error)
+    return "// AI suggestion unavailable"
+  }
 }
-
 
 // Helper functions for code analysis
 function detectLanguage(content: string, fileName?: string): string {
