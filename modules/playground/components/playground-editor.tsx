@@ -125,6 +125,9 @@ export const PlaygroundEditor = ({
         freeInlineCompletions: (completions: any) => {
           console.log("freeInlineCompletions called")
         },
+        disposeInlineCompletions: () => {
+          console.log("disposeInlineCompletions called")
+        },
       }
     },
     [suggestion, suggestionPosition],
