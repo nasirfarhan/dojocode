@@ -1,4 +1,9 @@
+ Welcome to DOJO CODE!! 
+        A vibe coding app that runs on the browser on a model that runs locally on your system!! 
+            Sounds too good right? Everything is within your browser I'll say just use it once!!
+                             Dojo states focus so you know it's for you
 
+### Home page
 ### Landing page
 
 ![Landing page](public/screenshots/landing-page.png)
@@ -41,17 +46,6 @@ A vibe coding app that runs on the browser on a model that runs locally on your 
 
 ![AI review](public/screenshots/ai-review.png)
 
-
-
-
-
-
-
-
-
-
-
-
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ```bash 
@@ -81,7 +75,12 @@ yarn dev
 pnpm dev
 # or
 bun dev
+
+AND
+
+Ollama run codellama
 ```
+You can choose Ollama model according to your system!! Welcome aboard!
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
