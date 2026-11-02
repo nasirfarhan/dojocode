@@ -3,7 +3,7 @@
             Sounds too good right? Everything is within your browser I'll say just use it once!!
                              Dojo states focus so you know it's for you
 
-### Home page
+
 ### Landing page
 
 ![Landing page](public/screenshots/landing-page.png)
