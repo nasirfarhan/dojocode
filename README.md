@@ -7,6 +7,7 @@ Step 1: npm install
 Step 2: Get these for your .env 
     DATABASE_URL=mongodb
     NEXTAUTH_URL="http://localhost:3000"
+    OLLAMA_URL="http://localhost:11434"
     AUTH_SECRET # Added by ⁠ npx auth ⁠. 
     GOOGLE_CLIENT_ID
     GOOGLE_CLIENT_SECRET
@@ -26,7 +27,11 @@ yarn dev
 pnpm dev
 # or
 bun dev
+ and 
+
+ Ollama run codellama
 ```
+You can choose Ollama model that supports your computer
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
@@ -72,4 +77,4 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ![AI review](public/screenshots/ai-review.png)
 
-Full guide will be out once the development is complete
+
