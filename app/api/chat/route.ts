@@ -1,5 +1,4 @@
- import { timeStamp } from "console";
-import { type NextRequest , NextResponse } from "next";
+ import { type NextRequest, NextResponse } from "next/server";
 
  interface ChatMessage{
     role: "user"| "assistant"
@@ -25,10 +24,10 @@ async function generateAIResponse(messages:ChatMessage []):Promise<string> {
 
  const prompt = fullMessages
  .map((msg)=>`${msg.role}:${msg.content}`)
- .join("/n/n")
+ .join("\n\n")
 
  try {
-    const response = await fetch("https://localhost:1143/api/generate" , {
+    const response = await fetch("http://localhost:11434/api/generate", {
         method:"POST",
         headers:{
             "Content-Type" : "application/json"
@@ -38,12 +37,16 @@ async function generateAIResponse(messages:ChatMessage []):Promise<string> {
             prompt:prompt,
             stream:false,
             options:{
-                temprature:0.7,
+                temperature:0.7,
                 max_tokens: 1000,
                 top_p: 0.9
             }
         })
     })
+
+    if (!response.ok) {
+        throw new Error(`AI service error: ${response.status} ${response.statusText}`)
+    }
 
     const data = await response.json()
 
@@ -60,7 +63,7 @@ async function generateAIResponse(messages:ChatMessage []):Promise<string> {
 
 export async function POST(req:NextRequest){
     try {
-        const body:ChatMessage = await req.json()
+        const body:ChatRequest = await req.json()
         const{message , history = []} = body
 
 
@@ -78,7 +81,7 @@ export async function POST(req:NextRequest){
             typeof msg === "object"&&
             typeof msg.role === "string"&&
             typeof msg.content ==="string"&&
-            ["user","assistant"].includes(msg)
+            ["user", "assistant"].includes(msg.role)
         ):[]
 
         const recentHistory = validHistory.slice(-10)
