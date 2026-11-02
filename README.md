@@ -7,6 +7,7 @@ Step 1: npm install
 Step 2: Get these for your .env 
     DATABASE_URL=mongodb
     NEXTAUTH_URL="http://localhost:3000"
+    OLLAMA_URL="http://localhost:11434"
     AUTH_SECRET # Added by ⁠ npx auth ⁠. 
     GOOGLE_CLIENT_ID
     GOOGLE_CLIENT_SECRET
