@@ -31,4 +31,46 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Screenshots
+
+### Landing page
+
+![Landing page](public/screenshots/landing-page.png)
+
+### Home page
+
+![Home page](public/screenshots/Home-page.png)
+
+### Template selector
+
+![Template selector](public/screenshots/template-selector.png)
+
+### Project name
+
+![Project name](public/screenshots/project-name.png)
+
+### Code editor
+
+![Code editor](public/screenshots/code-editor.png)
+
+### Terminal
+
+![Terminal](public/screenshots/terminal.png)
+
+### Code suggestion
+
+![Code suggestion](public/screenshots/code-suggestion.png)
+
+### AI fix
+
+![AI fix](public/screenshots/ai-fix.png)
+
+### AI optimize
+
+![AI optimize](public/screenshots/ai-optimize.png)
+
+### AI review
+
+![AI review](public/screenshots/ai-review.png)
+
 Full guide will be out once the development is complete
